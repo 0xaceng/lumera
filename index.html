@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumera MultiSender Pro - Advanced Batch Transfer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #1a1a2e;
+            --bg-card: rgba(26, 26, 46, 0.8);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b3;
+            --border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.2) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 60px 0;
+            position: relative;
+        }
+
+        .logo-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            background: var(--primary-gradient);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .logo::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: var(--primary-gradient);
+            border-radius: 30px;
+            opacity: 0.5;
+            z-index: -1;
+            filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card:hover {
+            border-color: rgba(102, 126, 234, 0.6);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-full {
+            grid-column: 1 / -1;
+        }
+
+        .wallet-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .wallet-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .wallet-info h3 {
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .wallet-status {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .wallet-details {
+            margin-top: 20px;
+        }
+
+        .wallet-address {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            word-break: break-all;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .balance-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .balance-amount {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            background: var(--secondary-gradient);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+        }
+
+        .form-section h3 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .input-helper {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .csv-upload {
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .csv-upload:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .csv-upload.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(102, 126, 234, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-gradient);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 25px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status i {
+            font-size: 1.2rem;
+        }
+
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status.loading {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status.info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info-color);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .tx-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .feature-item i {
+            color: #667eea;
+            width: 20px;
+        }
+
+        .faucet-section {
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.1), rgba(245, 87, 108, 0.1));
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .faucet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .faucet-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(240, 147, 251, 0.3);
+            border-radius: 10px;
+            color: #f093fb;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .faucet-link:hover {
+            background: rgba(240, 147, 251, 0.1);
+            border-color: #f093fb;
+            transform: translateY(-2px);
+        }
+
+        .address-book {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .address-book.active {
+            display: block;
+        }
+
+        .saved-address {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .saved-address:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .floating-help {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .floating-help:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .faucet-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .floating-help {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-rocket"></i>
+                </div>
+            </div>
+            <h1>Lumera MultiSender Pro</h1>
+            <p class="subtitle">Advanced batch token transfers with enhanced security and analytics</p>
+
+            <div class="feature-list">
+                <div class="feature-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Address Validation</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-file-csv"></i>
+                    <span>CSV Import/Export</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-history"></i>
+                    <span>Transaction History</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-address-book"></i>
+                    <span>Address Book</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Wallet Section -->
+            <div class="card">
+                <div class="wallet-header">
+                    <div class="wallet-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="wallet-info">
+                        <h3>Wallet Connection</h3>
+                        <div class="wallet-status" id="walletStatusText">
+                            Ready to connect
+                        </div>
+                    </div>
+                </div>
+
+                <div id="walletDetails" style="display: none;">
+                    <div class="wallet-details">
+                        <div class="wallet-address" id="walletAddress"></div>
+                        <div class="balance-display">
+                            <div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Available Balance</div>
+                                <div class="balance-amount" id="balanceAmount">0 LUME</div>
+                            </div>
+                            <i class="fas fa-coins" style="font-size: 2rem; color: var(--success-color); opacity: 0.7;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn" id="connectBtn" onclick="connectWallet()" style="width: 100%; margin-top: 20px;">
+                    <i class="fab fa-keybase"></i> Connect Keplr Wallet
+                </button>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="card">
+                <h3 style="color: #667eea; margin-bottom: 20px;">
+                    <i class="fas fa-history"></i> Recent Transactions
+                </h3>
+                <div id="transactionHistory">
+                    <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                        <p>No transactions yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Multi-Send Form -->
+        <div class="card card-full" id="multisendCard" style="display: none;">
+            <div class="form-section">
+                <h3><i class="fas fa-paper-plane"></i> Batch Transfer Configuration</h3>
+
+                <!-- CSV Upload Section -->
+                <div class="csv-upload" id="csvUpload" onclick="document.getElementById('csvFile').click()">
+                    <input type="file" id="csvFile" accept=".csv" style="display: none;" onchange="handleCSVUpload(event)">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #667eea; margin-bottom: 10px;"></i>
+                    <p style="color: var(--text-primary); margin-bottom: 5px;">Drop CSV file here or click to upload</p>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Format: address,amount (one per line)</p>
+                </div>
+
+                <div style="text-align: center; margin: 20px 0; color: var(--text-secondary);">
+                    <span style="padding: 0 15px; background: var(--bg-card);">OR</span>
+                </div>
+
+                <!-- Manual Input -->
+                <div class="form-group">
+                    <label for="recipients">
+                        <i class="fas fa-users"></i> Recipient Addresses
+                        <button class="btn" onclick="toggleAddressBook()" style="float: right; padding: 5px 10px; font-size: 0.8rem;">
+                            <i class="fas fa-address-book"></i> Address Book
+                        </button>
+                    </label>
+                    <textarea 
+                        class="form-control" 
+                        id="recipients" 
+                        placeholder="lumera1abc123..., lumera1def456..., lumera1ghi789..."
+                        oninput="validateAndCalculate()"
+                    ></textarea>
+                    <div class="input-helper">Enter addresses separated by commas or new lines</div>
+                </div>
+
+                <div class="address-book" id="addressBook">
+                    <h4 style="color: #667eea; margin-bottom: 15px;">Saved Addresses</h4>
+                    <div id="savedAddresses">
+                        <p style="color: var(--text-secondary);">No saved addresses yet</p>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <input type="text" id="newAddressName" placeholder="Address name" class="form-control" style="margin-bottom: 10px;">
+                        <input type="text" id="newAddress" placeholder="lumera1..." class="form-control" style="margin-bottom: 10px;">
+                        <button class="btn btn-success" onclick="saveAddress()" style="width: 100%;">
+                            <i class="fas fa-plus"></i> Save Address
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">
+                        <i class="fas fa-coins"></i> Amount per Recipient (LUME)
+                    </label>
+                    <input 
+                        type="number" 
+                        class="form-control" 
+                        id="amount" 
+                        placeholder="0.001000"
+                        step="0.000001"
+                        min="0.000001"
+                        oninput="validateAndCalculate()"
+                    >
+                    <div class="input-helper">Minimum amount: 0.000001 LUME</div>
+                </div>
+
+                <!-- Transaction Summary -->
+                <div class="summary-card" id="summaryCard" style="display: none;">
+                    <h4 style="color: #667eea; margin-bottom: 20px; text-align: center;">
+                        <i class="fas fa-calculator"></i> Transaction Summary
+                    </h4>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-value" id="recipientCount">0</div>
+                            <div class="summary-label">Recipients</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="perRecipient">0 LUME</div>
+                            <div class="summary-label">Per Recipient</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="totalAmount">0 LUME</div>
+                            <div class="summary-label">Total Amount</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-value" id="estimatedFee">~0.005 LUME</div>
+                            <div class="summary-label">Est. Network Fee</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container" id="progressContainer">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="color: var(--text-secondary);">Transaction Progress</span>
+                        <span id="progressText" style="color: #667eea;">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px;">
+                    <button class="btn" onclick="exportTemplate()" id="exportBtn">
+                        <i class="fas fa-download"></i> Export Template
+                    </button>
+                    <button class="btn btn-success" id="sendBtn" onclick="sendTokens()" disabled>
+                        <i class="fas fa-paper-plane"></i> Send Tokens
+                    </button>
+                </div>
+
+                <div id="txStatus"></div>
+            </div>
+        </div>
+
+        <!-- Faucet Links -->
+        <div class="card card-full">
+            <div class="faucet-section">
+                <h3 style="color: #f093fb; margin-bottom: 20px;">
+                    <i class="fas fa-faucet"></i> Get Testnet Tokens
+                </h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Need LUME tokens for testing? Use these community faucets
+                </p>
+                <div class="faucet-grid">
+                    <a href="https://faucet-lumera.winnode.xyz/" class="faucet-link" target="_blank">
+                        <i class="fas fa-server"></i> Winnode Faucet
+                    </a>
+                    <a href="https://faucet.astrostake.xyz/" class="faucet-link" target="_blank">
+                        <i class="fas fa-star"></i> Astrostake Faucet
+                    </a>
+                    <a href="https://lumera-faucet-maouam.nodelab.my.id/" class="faucet-link" target="_blank">
+                        <i class="fas fa-flask"></i> Nodelab Faucet
+                    </a>
+                    <a href="https://lumera-faucet.vercel.app/" class="faucet-link" target="_blank">
+                        <i class="fas fa-cloud"></i> Vercel Faucet
+                    </a>
+                    <a href="https://wh-faucet.netlify.app/" class="faucet-link" target="_blank">
+                        <i class="fas fa-globe"></i> WH Faucet
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Help Button -->
+    <div class="floating-help" onclick="showHelp()">
+        <i class="fas fa-question"></i>
+    </div>
+
+    <script>
+        // Enhanced Configuration
+        const CHAIN_ID = 'lumera-testnet-2';
+        const RPC_ENDPOINT = 'https://lumera-testnet-rpc.linknode.org/';
+        const API_ENDPOINT = 'https://lumera-testnet-api.linknode.org/';
+        const ADDRESS_PREFIX = 'lumera';
+        const DENOM = 'ulume';
+        const DECIMALS = 6;
+        const MIN_AMOUNT = 0.000001;
+
+        let wallet = null;
+        let address = null;
+        let balance = 0;
+        let validationResults = { valid: [], invalid: [] };
+        let transactionHistory = JSON.parse(localStorage.getItem('lumera_tx_history') || '[]');
+        let savedAddresses = JSON.parse(localStorage.getItem('lumera_addresses') || '{}');
+
+        // Enhanced Keplr Chain Configuration
+        const lumeraChainInfo = {
+            chainId: CHAIN_ID,
+            chainName: 'Lumera Testnet',
+            rpc: RPC_ENDPOINT,
+            rest: API_ENDPOINT,
+            bip44: { coinType: 118 },
+            bech32Config: {
+                bech32PrefixAccAddr: ADDRESS_PREFIX,
+                bech32PrefixAccPub: ADDRESS_PREFIX + 'pub',
+                bech32PrefixValAddr: ADDRESS_PREFIX + 'valoper',
+                bech32PrefixValPub: ADDRESS_PREFIX + 'valoperpub',
+                bech32PrefixConsAddr: ADDRESS_PREFIX + 'valcons',
+                bech32PrefixConsPub: ADDRESS_PREFIX + 'valconspub',
+            },
+            currencies: [{
+                coinDenom: 'LUME',
+                coinMinimalDenom: DENOM,
+                coinDecimals: DECIMALS,
+            }],
+            feeCurrencies: [{
+                coinDenom: 'LUME',
+                coinMinimalDenom: DENOM,
+                coinDecimals: DECIMALS,
+                gasPriceStep: { low: 0.01, average: 0.025, high: 0.03 },
+            }],
+            stakeCurrency: {
+                coinDenom: 'LUME',
+                coinMinimalDenom: DENOM,
+                coinDecimals: DECIMALS,
+            },
+        };
+
+        // Initialize stars background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = star.style.height = Math.random() * 3 + 1 + 'px';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Enhanced wallet connection
+        async function connectWallet() {
+            try {
+                if (!window.keplr) {
+                    showStatus('❌ Keplr extension not found. Please install Keplr wallet.', 'error');
+                    return;
+                }
+
+                showStatus('<i class="fas fa-spinner fa-spin"></i> Connecting to Keplr wallet...', 'loading');
+
+                try {
+                    await window.keplr.enable(CHAIN_ID);
+                } catch (error) {
+                    console.log('Adding Lumera chain to Keplr...');
+                    try {
+                        await window.keplr.experimentalSuggestChain(lumeraChainInfo);
+                        await window.keplr.enable(CHAIN_ID);
+                    } catch (chainError) {
+                        throw new Error('Failed to add Lumera chain. Please add manually or update Keplr.');
+                    }
+                }
+
+                const offlineSigner = window.keplr.getOfflineSigner(CHAIN_ID);
+                const accounts = await offlineSigner.getAccounts();
+
+                if (!accounts || accounts.length === 0) {
+                    throw new Error('No accounts found. Please create an account in Keplr.');
+                }
+
+                address = accounts[0].address;
+                wallet = offlineSigner;
+
+                showStatus('<i class="fas fa-spinner fa-spin"></i> Fetching account information...', 'loading');
+                await updateBalance();
+                updateWalletUI();
+                loadTransactionHistory();
+                loadSavedAddresses();
+                clearStatus();
+
+            } catch (error) {
+                console.error('Wallet connection failed:', error);
+                showStatus('❌ Connection failed: ' + error.message, 'error');
+            }
+        }
+
+        // Enhanced balance fetching with multiple fallbacks
+        async function updateBalance() {
+            try {
+                if (!address) {
+                    balance = 0;
+                    return;
+                }
+
+                let balanceFound = false;
+                const endpoints = [
+                    `${API_ENDPOINT}cosmos/bank/v1beta1/balances/${address}`,
+                    `${API_ENDPOINT}cosmos/bank/v1beta1/balances/${address}?pagination.limit=1000`,
+                ];
+
+                for (const endpoint of endpoints) {
+                    try {
+                        const response = await axios.get(endpoint, { timeout: 10000 });
+                        if (response.data && response.data.balances) {
+                            const lumeBalance = response.data.balances.find(b => b.denom === DENOM);
+                            if (lumeBalance) {
+                                balance = parseInt(lumeBalance.amount) / Math.pow(10, DECIMALS);
+                                balanceFound = true;
+                                break;
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`Failed to fetch from ${endpoint}:`, error.message);
+                    }
+                }
+
+                if (!balanceFound) {
+                    console.warn('Balance not found, setting to 0');
+                    balance = 0;
+                }
+
+            } catch (error) {
+                console.error('Failed to update balance:', error);
+                balance = 0;
+            }
+        }
+
+        // Enhanced UI updates
+        function updateWalletUI() {
+            const walletStatusText = document.getElementById('walletStatusText');
+            const walletDetails = document.getElementById('walletDetails');
+            const walletAddress = document.getElementById('walletAddress');
+            const balanceAmount = document.getElementById('balanceAmount');
+            const connectBtn = document.getElementById('connectBtn');
+            const multisendCard = document.getElementById('multisendCard');
+
+            if (address) {
+                walletStatusText.textContent = 'Connected & Ready';
+                walletAddress.textContent = address;
+                balanceAmount.textContent = `${balance.toFixed(6)} LUME`;
+
+                connectBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Disconnect Wallet';
+                connectBtn.className = 'btn btn-danger';
+                connectBtn.onclick = disconnectWallet;
+                connectBtn.style.width = '100%';
+                connectBtn.style.marginTop = '20px';
+
+                walletDetails.style.display = 'block';
+                multisendCard.style.display = 'block';
+            } else {
+                walletStatusText.textContent = 'Ready to connect';
+                walletDetails.style.display = 'none';
+                multisendCard.style.display = 'none';
+
+                connectBtn.innerHTML = '<i class="fab fa-keybase"></i> Connect Keplr Wallet';
+                connectBtn.className = 'btn';
+                connectBtn.onclick = connectWallet;
+            }
+        }
+
+        function disconnectWallet() {
+            wallet = null;
+            address = null;
+            balance = 0;
+            updateWalletUI();
+            clearStatus();
+
+            // Clear form
+            document.getElementById('recipients').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('summaryCard').style.display = 'none';
+        }
+
+        // Enhanced address validation
+        function validateAddresses(addresses) {
+            const valid = [];
+            const invalid = [];
+
+            addresses.forEach(addr => {
+                const trimmed = addr.trim();
+                if (trimmed.length === 0) return;
+
+                if (trimmed.startsWith(ADDRESS_PREFIX) && trimmed.length >= 39 && trimmed.length <= 45) {
+                    // Basic bech32 validation
+                    try {
+                        const decoded = trimmed.slice(ADDRESS_PREFIX.length);
+                        if (/^[a-z0-9]+$/.test(decoded)) {
+                            valid.push(trimmed);
+                        } else {
+                            invalid.push({ address: trimmed, error: 'Invalid bech32 format' });
+                        }
+                    } catch (e) {
+                        invalid.push({ address: trimmed, error: 'Invalid address format' });
+                    }
+                } else {
+                    invalid.push({ address: trimmed, error: 'Invalid Lumera address' });
+                }
+            });
+
+            return { valid, invalid };
+        }
+
+        // Enhanced validation and calculation
+        function validateAndCalculate() {
+            const recipientsText = document.getElementById('recipients').value;
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+
+            // Parse addresses (comma or newline separated)
+            const addresses = recipientsText.split(/[,\n]/)
+                .map(addr => addr.trim())
+                .filter(addr => addr.length > 0);
+
+            validationResults = validateAddresses(addresses);
+
+            // Remove duplicates
+            validationResults.valid = [...new Set(validationResults.valid)];
+
+            const recipientCount = validationResults.valid.length;
+            const total = recipientCount * amount;
+            const estimatedFee = Math.max(0.005, recipientCount * 0.001); // Dynamic fee estimation
+
+            // Update summary
+            document.getElementById('recipientCount').textContent = recipientCount;
+            document.getElementById('perRecipient').textContent = `${amount.toFixed(6)} LUME`;
+            document.getElementById('totalAmount').textContent = `${total.toFixed(6)} LUME`;
+            document.getElementById('estimatedFee').textContent = `~${estimatedFee.toFixed(6)} LUME`;
+
+            const summaryCard = document.getElementById('summaryCard');
+            const sendBtn = document.getElementById('sendBtn');
+
+            if (recipientCount > 0 && amount >= MIN_AMOUNT) {
+                summaryCard.style.display = 'block';
+
+                const totalNeeded = total + estimatedFee;
+                if (totalNeeded <= balance && address) {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = `<i class="fas fa-paper-plane"></i> Send to ${recipientCount} Recipients`;
+                } else if (!address) {
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = '<i class="fas fa-wallet"></i> Connect Wallet First';
+                } else {
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Insufficient Balance';
+                }
+            } else {
+                summaryCard.style.display = 'none';
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Tokens';
+            }
+
+            // Show validation errors
+            if (validationResults.invalid.length > 0) {
+                const errorMsg = validationResults.invalid.map(item => 
+                    `${item.address}: ${item.error}`
+                ).join('\n');
+
+                showStatus(
+                    `<i class="fas fa-exclamation-triangle"></i> Address validation errors:\n${errorMsg.substring(0, 200)}${errorMsg.length > 200 ? '...' : ''}`,
+                    'error'
+                );
+            }
+        }
+
+        // CSV file handling
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                const lines = csv.split('\n').filter(line => line.trim());
+
+                let addresses = [];
+                let amount = 0;
+                let isAmountSet = false;
+
+                lines.forEach((line, index) => {
+                    if (index === 0 && (line.toLowerCase().includes('address') || line.toLowerCase().includes('amount'))) {
+                        return; // Skip header
+                    }
+
+                    const parts = line.split(',').map(p => p.trim());
+                    if (parts.length >= 1) {
+                        const addr = parts[0];
+                        if (addr.startsWith(ADDRESS_PREFIX)) {
+                            addresses.push(addr);
+
+                            // If amount is provided in CSV
+                            if (parts.length >= 2 && !isAmountSet) {
+                                const csvAmount = parseFloat(parts[1]);
+                                if (csvAmount > 0) {
+                                    amount = csvAmount;
+                                    isAmountSet = true;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                document.getElementById('recipients').value = addresses.join(', ');
+                if (isAmountSet) {
+                    document.getElementById('amount').value = amount;
+                }
+
+                validateAndCalculate();
+
+                showStatus(
+                    `<i class="fas fa-check"></i> CSV loaded successfully: ${addresses.length} addresses imported`,
+                    'success'
+                );
+
+                setTimeout(clearStatus, 3000);
+            };
+
+            reader.readAsText(file);
+        }
+
+        // Drag and drop for CSV
+        document.addEventListener('DOMContentLoaded', function() {
+            const csvUpload = document.getElementById('csvUpload');
+
+            csvUpload.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                csvUpload.classList.add('dragover');
+            });
+
+            csvUpload.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                csvUpload.classList.remove('dragover');
+            });
+
+            csvUpload.addEventListener('drop', function(e) {
+                e.preventDefault();
+                csvUpload.classList.remove('dragover');
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.name.endsWith('.csv')) {
+                        document.getElementById('csvFile').files = files;
+                        handleCSVUpload({ target: { files: [file] } });
+                    }
+                }
+            });
+
+            createStars();
+            loadSavedAddresses();
+            updateWalletUI();
+        });
+
+        // Export CSV template
+        function exportTemplate() {
+            const csvContent = 'address,amount\nlumera1example1...,0.001000\nlumera1example2...,0.001000\nlumera1example3...,0.001000';
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'lumera_multisend_template.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Address book functionality
+        function toggleAddressBook() {
+            const addressBook = document.getElementById('addressBook');
+            addressBook.classList.toggle('active');
+        }
+
+        function saveAddress() {
+            const name = document.getElementById('newAddressName').value.trim();
+            const address = document.getElementById('newAddress').value.trim();
+
+            if (!name || !address) {
+                showStatus('<i class="fas fa-exclamation-triangle"></i> Please enter both name and address', 'error');
+                return;
+            }
+
+            if (!address.startsWith(ADDRESS_PREFIX)) {
+                showStatus('<i class="fas fa-exclamation-triangle"></i> Invalid Lumera address', 'error');
+                return;
+            }
+
+            savedAddresses[name] = address;
+            localStorage.setItem('lumera_addresses', JSON.stringify(savedAddresses));
+
+            document.getElementById('newAddressName').value = '';
+            document.getElementById('newAddress').value = '';
+
+            loadSavedAddresses();
+            showStatus('<i class="fas fa-check"></i> Address saved successfully', 'success');
+            setTimeout(clearStatus, 2000);
+        }
+
+        function loadSavedAddresses() {
+            const container = document.getElementById('savedAddresses');
+            const addresses = Object.entries(savedAddresses);
+
+            if (addresses.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary);">No saved addresses yet</p>';
+                return;
+            }
+
+            container.innerHTML = addresses.map(([name, address]) => `
+                <div class="saved-address" onclick="addToRecipients('${address}')">
+                    <div>
+                        <strong>${name}</strong><br>
+                        <small style="font-family: monospace; color: var(--text-secondary);">${address}</small>
+                    </div>
+                    <i class="fas fa-plus" style="color: #667eea;"></i>
+                </div>
+            `).join('');
+        }
+
+        function addToRecipients(address) {
+            const recipients = document.getElementById('recipients');
+            const current = recipients.value.trim();
+            recipients.value = current ? `${current}, ${address}` : address;
+            validateAndCalculate();
+        }
+
+        // Enhanced transaction sending with progress tracking
+        async function sendTokens() {
+            try {
+                if (validationResults.valid.length === 0) {
+                    throw new Error('No valid recipients found');
+                }
+
+                const amount = parseFloat(document.getElementById('amount').value);
+                const amountInMicroLume = Math.floor(amount * Math.pow(10, DECIMALS));
+
+                showProgress(0, 'Preparing transaction...');
+
+                // Create messages
+                const messages = validationResults.valid.map(recipient => ({
+                    typeUrl: '/cosmos.bank.v1beta1.MsgSend',
+                    value: {
+                        fromAddress: address,
+                        toAddress: recipient,
+                        amount: [{
+                            denom: DENOM,
+                            amount: amountInMicroLume.toString()
+                        }]
+                    }
+                }));
+
+                showProgress(25, 'Fetching account information...');
+
+                // Get account info with better error handling
+                let accountInfo = { accountNumber: '0', sequence: '0' };
+                try {
+                    const accountResponse = await axios.get(
+                        `${API_ENDPOINT}cosmos/auth/v1beta1/accounts/${address}`,
+                        { timeout: 10000 }
+                    );
+
+                    if (accountResponse.data && accountResponse.data.account) {
+                        const account = accountResponse.data.account;
+                        accountInfo.accountNumber = account.account_number || '0';
+                        accountInfo.sequence = account.sequence || '0';
+                    }
+                } catch (error) {
+                    console.warn('Failed to fetch account info, using defaults:', error);
+                }
+
+                showProgress(50, 'Please approve transaction in Keplr...');
+
+                // Calculate dynamic fee based on message count
+                const gasEstimate = Math.max(200000, messages.length * 50000);
+                const feeAmount = Math.max(5000, messages.length * 1000);
+
+                const fee = {
+                    amount: [{
+                        denom: DENOM,
+                        amount: feeAmount.toString()
+                    }],
+                    gas: gasEstimate.toString()
+                };
+
+                // Sign transaction
+                const signed = await wallet.signDirect(address, {
+                    bodyBytes: createTxBodyBytes(messages),
+                    authInfoBytes: createAuthInfoBytes(fee, parseInt(accountInfo.sequence)),
+                    chainId: CHAIN_ID,
+                    accountNumber: parseInt(accountInfo.accountNumber)
+                });
+
+                showProgress(75, 'Broadcasting transaction...');
+
+                // Broadcast transaction
+                const txBytes = Array.from(signed.signed);
+                const broadcastResponse = await axios.post(
+                    `${RPC_ENDPOINT}broadcast_tx_sync`,
+                    { tx: btoa(String.fromCharCode(...txBytes)) },
+                    { timeout: 15000 }
+                );
+
+                showProgress(100, 'Transaction completed!');
+
+                if (broadcastResponse.data.result.code === 0) {
+                    const txHash = broadcastResponse.data.result.hash;
+
+                    // Add to transaction history
+                    const historyEntry = {
+                        hash: txHash,
+                        timestamp: Date.now(),
+                        recipients: validationResults.valid.length,
+                        amount: amount,
+                        total: validationResults.valid.length * amount,
+                        status: 'success'
+                    };
+
+                    transactionHistory.unshift(historyEntry);
+                    transactionHistory = transactionHistory.slice(0, 10); // Keep last 10
+                    localStorage.setItem('lumera_tx_history', JSON.stringify(transactionHistory));
+
+                    showStatus(
+                        `<i class="fas fa-check-circle"></i> Transaction successful! Sent ${amount} LUME to ${validationResults.valid.length} recipients<div class="tx-hash">TX Hash: ${txHash}</div>`,
+                        'success'
+                    );
+
+                    // Update balance and UI
+                    setTimeout(async () => {
+                        await updateBalance();
+                        updateWalletUI();
+                        loadTransactionHistory();
+                    }, 3000);
+
+                    // Clear form
+                    document.getElementById('recipients').value = '';
+                    document.getElementById('amount').value = '';
+                    validateAndCalculate();
+
+                } else {
+                    throw new Error(broadcastResponse.data.result.log || 'Transaction failed');
+                }
+
+            } catch (error) {
+                console.error('Transaction failed:', error);
+                hideProgress();
+                showStatus(`<i class="fas fa-exclamation-circle"></i> Transaction failed: ${error.message}`, 'error');
+
+                // Add failed transaction to history
+                const historyEntry = {
+                    timestamp: Date.now(),
+                    recipients: validationResults.valid.length,
+                    amount: parseFloat(document.getElementById('amount').value),
+                    status: 'failed',
+                    error: error.message
+                };
+
+                transactionHistory.unshift(historyEntry);
+                localStorage.setItem('lumera_tx_history', JSON.stringify(transactionHistory));
+                loadTransactionHistory();
+            }
+        }
+
+        // Progress indicator functions
+        function showProgress(percentage, message) {
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = percentage + '%';
+
+            if (message) {
+                showStatus(`<i class="fas fa-spinner fa-spin"></i> ${message}`, 'loading');
+            }
+        }
+
+        function hideProgress() {
+            document.getElementById('progressContainer').style.display = 'none';
+        }
+
+        // Transaction history
+        function loadTransactionHistory() {
+            const container = document.getElementById('transactionHistory');
+
+            if (transactionHistory.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                        <p>No transactions yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = transactionHistory.slice(0, 5).map(tx => {
+                const date = new Date(tx.timestamp).toLocaleDateString();
+                const statusIcon = tx.status === 'success' ? 
+                    '<i class="fas fa-check-circle" style="color: var(--success-color);"></i>' :
+                    '<i class="fas fa-exclamation-circle" style="color: var(--error-color);"></i>';
+
+                return `
+                    <div style="padding: 12px; border-bottom: 1px solid rgba(102, 126, 234, 0.1); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                                ${statusIcon}
+                                <span style="font-weight: 600;">${tx.recipients} recipients</span>
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 0.8rem;">${date}</div>
+                            ${tx.hash ? `<div style="font-family: monospace; font-size: 0.7rem; color: var(--text-secondary); margin-top: 5px;">${tx.hash.substring(0, 16)}...</div>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 600;">${(tx.total || 0).toFixed(6)} LUME</div>
+                            <div style="color: var(--text-secondary); font-size: 0.8rem;">${tx.amount} per recipient</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Enhanced transaction creation functions
+        function createTxBodyBytes(messages) {
+            // This is a simplified version - in production, use proper protobuf encoding
+            const txBody = {
+                messages: messages,
+                memo: 'Lumera MultiSender Pro - Batch Transfer',
+                timeoutHeight: '0'
+            };
+            return new TextEncoder().encode(JSON.stringify(txBody));
+        }
+
+        function createAuthInfoBytes(fee, sequence) {
+            const authInfo = {
+                signerInfos: [{
+                    publicKey: null,
+                    modeInfo: { single: { mode: 'SIGN_MODE_DIRECT' } },
+                    sequence: sequence.toString()
+                }],
+                fee: fee
+            };
+            return new TextEncoder().encode(JSON.stringify(authInfo));
+        }
+
+        // Status and helper functions
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('txStatus');
+            statusDiv.innerHTML = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function clearStatus() {
+            const statusDiv = document.getElementById('txStatus');
+            statusDiv.style.display = 'none';
+        }
+
+        // Help dialog
+        function showHelp() {
+            const helpText = `
+🚀 Lumera MultiSender Pro Help
+
+✅ Features:
+• Send LUME tokens to multiple addresses at once
+• CSV file import/export support
+• Address book for frequently used addresses
+• Real-time balance and fee estimation
+• Transaction history tracking
+• Advanced address validation
+
+📝 How to use:
+1. Connect your Keplr wallet
+2. Enter recipient addresses (comma or newline separated)
+3. Set amount per recipient
+4. Review the transaction summary
+5. Click "Send Tokens" and approve in Keplr
+
+📄 CSV Format:
+address,amount
+lumera1abc...,0.001
+lumera1def...,0.002
+
+💡 Tips:
+• Minimum amount: 0.000001 LUME
+• Network fees are automatically calculated
+• Use the address book to save frequently used addresses
+• Export template for easy CSV creation
+
+Need testnet tokens? Use the faucet links below!
+            `;
+            alert(helpText);
+        }
+    </script>
+</body>
+</html>
